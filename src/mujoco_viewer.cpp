@@ -78,30 +78,50 @@ namespace mujoco_viewer {
   }
 
   void Viewer::update(mjData& data_) {
-    *this->data_ = data_;
+    this->setData(data_);
+    this->render();
+  }
+
+  void Viewer::setData(const mjData& data_) {
+    mj_copyData(this->data_.get(), this->model_.get(), &data_);
     mj_forward(this->model_.get(), this->data_.get());
+  }
+
+  void Viewer::updateScene() {
     mjv_updateScene(this->model_.get(), this->data_.get(), &this->opt, NULL, &this->cam, mjCAT_ALL, &this->scn);
+  }
+
+  mjvGeom* Viewer::appendGeom() {
+    if (this->scn.ngeom >= this->scn.maxgeom) return nullptr;
+    return &this->scn.geoms[this->scn.ngeom++];
+  }
+
+  void Viewer::drawScene() {
     int w,h;
     glfwGetFramebufferSize(this->window,&w,&h);
     mjrRect viewport = {0,0,w,h};
     mjr_render(viewport, &this->scn, &this->con);
     glfwSwapBuffers(window);
+  }
+
+  void Viewer::pollEvents() {
     glfwPollEvents();
   }
 
+  void Viewer::render() {
+    this->updateScene();
+    this->drawScene();
+    this->pollEvents();
+  }
+
+  bool Viewer::isOpen() const {
+    return !glfwWindowShouldClose(this->window);
+  }
+
   void Viewer::view() {
-    while (!glfwWindowShouldClose(this->window))
+    while (this->isOpen())
       {
-        mjv_updateScene(this->model_.get(), this->data_.get(), &this->opt, NULL, &this->cam, mjCAT_ALL, &this->scn);
-
-        int w,h;
-        glfwGetFramebufferSize(window,&w,&h);
-        mjrRect viewport = {0,0,w,h};
-
-        mjr_render(viewport, &this->scn, &this->con);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        this->render();
       }
   }
 }

@@ -10,6 +10,21 @@ namespace mujoco_viewer {
   public:
     void viewModel(std::string filename);
     void update(mjData& data_);
+    void setData(const mjData& data);
+    void updateScene();
+    mjvGeom* appendGeom();
+    void drawScene();
+    void pollEvents();
+    void render();
+    bool isOpen() const;
+
+    mjModel* model() const { return model_.get(); }
+    mjData* data() { return data_.get(); }
+    const mjData* data() const { return data_.get(); }
+    mjvScene* scene() { return &scn; }
+    const mjvScene* scene() const { return &scn; }
+    mjvCamera* camera() { return &cam; }
+    mjvOption* option() { return &opt; }
     void view();
   private:
     static void mouse_button_callback(GLFWwindow* window, int button, int act, int mods);
